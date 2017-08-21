@@ -1,11 +1,16 @@
 Package: ccber
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Estimation of Behavioral Entropy Rate 
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Authors@R: person("Brian", "Vegetabile", email="bvegetab@uci.edu",
+    role=c("aut", "cre"))
+Description: Estimation of behavioral entropy rate developed at the Conte Center
+    at UC Irvine.  This package can be used to estimate the entropy rate of 
+    sequences.
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
+Imports:
+    intervals,
+    readxl
+RoxygenNote: 6.0.1
