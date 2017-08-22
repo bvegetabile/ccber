@@ -22,3 +22,4 @@ t_mat <- matrix(c(0.3, 0.7, 0.6, 0.4), 2,2, T)
 sim_mc <- SimulateMarkovChain(t_mat)
 sim_mc <- SimulateMarkovChain(t_mat, n_sims = 500)
 }
+

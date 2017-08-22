@@ -1,11 +1,11 @@
 Package: ccber
 Type: Package
-Title: Estimation of Behavioral Entropy Rate 
+Title: Estimation of Behavioral Entropy Rate
 Version: 0.1.0
 Authors@R: person("Brian", "Vegetabile", email="bvegetab@uci.edu",
     role=c("aut", "cre"))
 Description: Estimation of behavioral entropy rate developed at the Conte Center
-    at UC Irvine.  This package can be used to estimate the entropy rate of 
+    at UC Irvine.  This package can be used to estimate the entropy rate of
     sequences.
 License: What license is it under?
 Encoding: UTF-8
@@ -13,4 +13,4 @@ LazyData: true
 Imports:
     intervals,
     readxl
-RoxygenNote: 6.0.1
+RoxygenNote: 5.0.1

@@ -2,7 +2,7 @@
 % Please edit documentation in R/entropy_rate.R
 \name{CalcTransitionCounts}
 \alias{CalcTransitionCounts}
-\title{Compute a Matrix of Transition Counts from an Observed Sequence}
+\title{Compute a Matrix of Transition Counts from an Observed Sequence (First-Order)}
 \usage{
 CalcTransitionCounts(event_seq, n_states = length(unique(event_seq)))
 }
@@ -15,10 +15,11 @@ CalcTransitionCounts(event_seq, n_states = length(unique(event_seq)))
 Matrix \deqn{n_{states} \times n_{states}} representing the number of transitions from each state to all other states.
 }
 \description{
-Compute a Matrix of Transition Counts from an Observed Sequence
+Compute a Matrix of Transition Counts from an Observed Sequence (First-Order)
 }
 \examples{
 t_mat <- matrix(c(0.3, 0.7, 0.6, 0.4), 2,2, T)
 sim_mc <- SimulateMarkovChain(t_mat, n_sims = 500)
 tc <- CalcTransitionCounts(sim_mc)
 }
+

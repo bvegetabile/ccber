@@ -42,12 +42,12 @@ SimulateMarkovChain <- function(trans_mat, n_sims=100){
 
 # Functions for the Estimation of Entropy Rate----------------------------------
 
-#' Compute a Matrix of Transition Counts from an Observed Sequence
+#' Compute a Matrix of Transition Counts from an Observed Sequence (First-Order)
 #'
 #' @param event_seq Vector of observations.
 #' @param n_states Total number of expected unique states.
 #' @return Matrix \deqn{n_{states} \times n_{states}} representing the number of transitions from each state to all other states.
-#'@examples
+#' @examples
 #' t_mat <- matrix(c(0.3, 0.7, 0.6, 0.4), 2,2, T)
 #' sim_mc <- SimulateMarkovChain(t_mat, n_sims = 500)
 #' tc <- CalcTransitionCounts(sim_mc)
@@ -60,6 +60,18 @@ CalcTransitionCounts <- function(event_seq, n_states=length(unique(event_seq))){
   return(obs_trans)
 }
 
+
+#' Compute a Matrix of Transition Counts from an Observed Sequence (Arbitrary Order)
+#'
+#' @inheritParams CalcTransitionCounts
+#' @param state_space vector composed of all of the state space
+#' @param mc_order order of the Markov chain.  Defaults to 1.
+#'
+#' @return Returns a matrix of transition counts of a given order
+#' @examples
+#' t_mat <- matrix(c(0.3, 0.7, 0.6, 0.4), 2,2, T)
+#' sim_mc <- SimulateMarkovChain(t_mat, n_sims = 500)
+#' tc2 <- CalcTC_Mth_Order(sim_mc, 1:2, mc_order=2)
 CalcTC_Mth_Order <- function(event_seq, state_space, mc_order=1){
   n_obs <- length(event_seq)
   n_states <- length(state_space)
@@ -90,11 +102,15 @@ CalcTC_Mth_Order <- function(event_seq, state_space, mc_order=1){
   return(obs_trans)
 }
 
-
-#####
-# Calculation of the empirical estimate of the transition matrix of a
-# finite Markov Chain.
-
+#' Calculate the Transition Matrix of a First-Order Markov Chain
+#'
+#' @param trans_counts Matrix of transition counts
+#' @return Row-stochastic transition matrix of a first-order Markov chain.
+#' @examples
+#' t_mat <- matrix(c(0.3, 0.7, 0.6, 0.4), 2,2, T)
+#' sim_mc <- SimulateMarkovChain(t_mat, n_sims = 500)
+#' tc <- CalcTransitionCounts(sim_mc)
+#' tm <- CalcTransitionMatrix(tc)
 CalcTransitionMatrix <- function(trans_counts){
   mat_dim = ncol(trans_counts)
   row_totals <- rowSums(trans_counts)
@@ -105,15 +121,17 @@ CalcTransitionMatrix <- function(trans_counts){
   return(trans_mat)
 }
 
-#####
-# Calculation of the Eigenvalue Decomposition of the Transition Matrix as an
-# estimate of the Stationary Distribution
-#
-# @examples
-# > tm <- matrix(c(0,0,1,1,0,0,0,1,0),3,3,TRUE)
-# > CalcEigenStationary(tm)
-# [1] 0.3333333 0.3333333 0.3333333
 
+#' Calculate the Stationary Distribution of a First-Order Markov Chain from its
+#' Transition Matrix
+#'
+#' @param trans_mat Transition matrix
+#' @return vector representing the stationary distribution of the Markov chain
+#' @examples
+#' tm1 <- matrix(c(0,0,1,1,0,0,0,1,0), 3,3, T)
+#' sm1 <- CalcEigenStationary(tm1)
+#' tm2 <- matrix(c(.3, 0.7, 0.8, 0.2), 2,2, T)
+#' sm2 <- CalcEigenStationary(tm2)
 CalcEigenStationary <- function(trans_mat){
   tm_eig <- eigen(t(trans_mat))
   if(any(round(Mod(tm_eig$values),10)==1)){
@@ -126,17 +144,44 @@ CalcEigenStationary <- function(trans_mat){
   }
 }
 
-#####
-# Calculation of the Empirical estimate of the Stationary Distribution
 
-CalcEmpiricalStationary <- function(m_chain, state_space){
+#' Calculation of the Empirical Stationary Distribution from an observed Markov Chain (first-order)
+#'
+#' @param event_seq Observed sequence of events as a Markov chain
+#' @param state_space State space of the observed Markov chain
+#'
+#' @return Estimate of the stationary distribution
+#'
+#' @examples
+#' t_mat <- matrix(c(0.3, 0.7, 0.6, 0.4), 2,2, T)
+#' sim_mc <- SimulateMarkovChain(t_mat, n_sims = 500)
+#' true_sm <- CalcEigenStationary(t_mat)
+#' est_sm <- CalcEmpiricalStationary(sim_mc, 1:2)
+CalcEmpiricalStationary <- function(event_seq, state_space){
   emp_stat <- matrix(0, nrow = 1, ncol = length(state_space))
   for(i in 1:length(state_space)){
-    emp_stat[1,i] <- length(m_chain[m_chain == state_space[i]]) / length(m_chain)
+    emp_stat[1,i] <- length(event_seq[event_seq == state_space[i]]) / length(event_seq)
   }
   return(emp_stat)
 }
 
+#' Calculation of the Empirical Stationary Distribution from an observed Markov Chain (Arbitrary-Order)
+#'
+#' @param event_seq Observed sequence of events as a Markov chain
+#' @param state_space State space of the observed Markov chain
+#' @param mc_order Order of the Markov Chain
+#'
+#' @return Estimate of the stationary distribution
+#'
+#' @examples
+#' t_mat <- matrix(c(0.3, 0.7, 0.6, 0.4), 2,2, T)
+#' sim_mc <- SimulateMarkovChain(t_mat, n_sims = 10000)
+#' tc2 <- CalcTC_Mth_Order(sim_mc, 1:2, 2)
+#' tm2 <- CalcTransitionMatrix(tc2)
+#' eig_sm <- CalcEigenStationary(tm2)
+#' emp_sm <- CalcEmpStat_Mth_Order(sim_mc, 1:2, 2)
+#' print(eig_sm)
+#' print(emp_sm)
 CalcEmpStat_Mth_Order <- function(event_seq, state_space, mc_order=1){
   n_obs <- length(event_seq)
   n_states <- length(state_space)
@@ -165,40 +210,56 @@ CalcEmpStat_Mth_Order <- function(event_seq, state_space, mc_order=1){
   return(emp_stat)
 }
 
-#####
-# Calculation of the estimate of the entropy rate of a finite Markov Chain.
-
-CalcMarkovEntropyRate <- function(trans_mat, stat_mat){
-  n_dim <- length(stat_mat)
-  stat_mat <- matrix(rep(stat_mat, n_dim), n_dim, n_dim, byrow=TRUE)
+#' Calculate an estimate of the Entropy Rate of a finite Markov Chain
+#'
+#' @param trans_mar Transition Matrix of a finite Markov chain
+#' @param stat_dist Vector of the stationary distribution of the Markov chain
+#'
+#' @return Estimate of the Entropy Rate
+#' @examples
+#' t_mat <- matrix(c(0.3, 0.7, 0.6, 0.4), 2,2, T)
+#' sim_mc <- SimulateMarkovChain(t_mat, n_sims = 10000)
+#' tc2 <- CalcTC_Mth_Order(sim_mc, 1:2, 2)
+#' tm2 <- CalcTransitionMatrix(tc2)
+#' eig_sm <- CalcEigenStationary(tm2)
+#' emp_sm <- CalcEmpStat_Mth_Order(sim_mc, 1:2, 2)
+#' CalcMarkovEntropyRate(t_mat, CalcEigenStationary(t_mat))
+#' CalcMarkovEntropyRate(tm2, eig_sm)
+#' CalcMarkovEntropyRate(tm2, emp_sm)
+CalcMarkovEntropyRate <- function(trans_mat, stat_dist){
+  n_dim <- length(stat_dist)
+  stat_mat <- matrix(rep(stat_dist, n_dim), n_dim, n_dim, byrow=TRUE)
   ent_rate <- -sum(t(stat_mat) * trans_mat * log2(trans_mat), na.rm = TRUE)
   return(ent_rate)
 }
 
-################################################################################
-#
-# Function to which organizes all other functions to calculate the entropy rate
-#
-
+#' Calculate the Entropy Rate of a Finite Markov Chain
+#'
+#' @param event_seq Observed sequence of events
+#' @param state_space State space of the observed process
+#' @param mc_order Order of the Markov Chain
+#' @param stat_method Method for computing the Stationary distribution
+#'
+#' @return Estimate of the Entropy Rate
+#' @examples
+#' t_mat <- matrix(c(0.3, 0.7, 0.6, 0.4), 2,2, T)
+#' sim_mc <- SimulateMarkovChain(t_mat, n_sims = 50000)
+#' CalcMarkovEntropyRate(t_mat, CalcEigenStationary(t_mat))
+#' CalcEntropyRate(sim_mc, 1:2, mc_order = 1, stat_method="Empirical")
+#' CalcEntropyRate(sim_mc, 1:2, mc_order = 1, stat_method="Eigen")
 CalcEntropyRate <- function(event_seq,
                             state_space,
-                            method='Markov',
                             mc_order = 1,
                             stat_method='Empirical'){
-  if(method == 'Markov'){
-    tc <- CalcTC_Mth_Order(event_seq, state_space, mc_order)
-    tm <- CalcTransitionMatrix(tc)
-    if(stat_method != 'Empirical'){
-      sm <- CalcEigenStationary(tm)
-    } else{
-      sm <- CalcEmpStat_Mth_Order(event_seq, state_space, mc_order)
-    }
-    ent <- CalcMarkovEntropyRate(tm, sm)
-    return(ent)
-  } else {
-    message('Error: Not a valid entropy rate estimation method -> Choose "Markov" or "SWLZ".')
-    return(NULL)
+  tc <- CalcTC_Mth_Order(event_seq, state_space, mc_order)
+  tm <- CalcTransitionMatrix(tc)
+  if(stat_method != 'Empirical'){
+    sm <- CalcEigenStationary(tm)
+  } else{
+    sm <- CalcEmpStat_Mth_Order(event_seq, state_space, mc_order)
   }
+  ent <- CalcMarkovEntropyRate(tm, sm)
+  return(ent)
 }
 
 
