@@ -12,7 +12,7 @@ CalcTransitionCounts(event_seq, n_states = length(unique(event_seq)))
 \item{n_states}{Total number of expected unique states.}
 }
 \value{
-Matrix representing the number of transitions from each state to all other states.
+Matrix \deqn{n_{states} \times n_{states}} representing the number of transitions from each state to all other states.
 }
 \description{
 Compute a Matrix of Transition Counts from an Observed Sequence

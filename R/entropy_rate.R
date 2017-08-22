@@ -46,7 +46,7 @@ SimulateMarkovChain <- function(trans_mat, n_sims=100){
 #'
 #' @param event_seq Vector of observations.
 #' @param n_states Total number of expected unique states.
-#' @return Matrix representing the number of transitions from each state to all other states.
+#' @return Matrix \deqn{n_{states} \times n_{states}} representing the number of transitions from each state to all other states.
 #'@examples
 #' t_mat <- matrix(c(0.3, 0.7, 0.6, 0.4), 2,2, T)
 #' sim_mc <- SimulateMarkovChain(t_mat, n_sims = 500)
