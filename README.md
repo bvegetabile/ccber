@@ -1,6 +1,11 @@
 Estimation of Behavioral Entropy Rate developed at the Conte Center @ UCI
 =========================================================================
 
+-Developed for the Conte Center @ UC Irvine
+-------------------------------------------
+
+See reference: PNAS Paper
+
 R Markdown
 ----------
 
@@ -27,7 +32,7 @@ Including Plots
 
 You can also embed plots, for example:
 
-![](using_ccber_files/figure-markdown_strict/pressure-1.png)
+![](README_files/figure-markdown_strict/pressure-1.png)
 
 Note that the `echo = FALSE` parameter was added to the code chunk to
 prevent printing of the R code that generated the plot.

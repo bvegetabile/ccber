@@ -8,6 +8,9 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Estimation of Behavioral Entropy Rate developed at the Conte Center @ UCI
+## -Developed for the Conte Center @ UC Irvine
+
+See reference: PNAS Paper
 
 ## R Markdown
 
