@@ -1,8 +1,8 @@
-Estimation of Behavioral Entropy Rate
-=====================================
+`ccber`: Package for the Estimation of Behavioral Entropy Rate
+==============================================================
 
-- Developed for the Conte Center @ UC Irvine
---------------------------------------------
+-Developed for the Conte Center @ UC Irvine
+-------------------------------------------
 
 See reference: PNAS Paper
 
