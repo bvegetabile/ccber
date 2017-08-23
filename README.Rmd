@@ -7,7 +7,7 @@ output: md_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# $\texttt{ccber}$: an `R` Package for the Estimation of Behavioral Entropy Rate - Developed for the Conte Center @ UC Irvine
+# $\texttt{ccber}$: an `R` Package for the Estimation of Behavioral Entropy Rate - Developed for the Conte Center @ UCI
 
 See reference: PNAS Paper
 
