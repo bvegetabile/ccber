@@ -1,6 +1,6 @@
 ---
 title: "Estimation of Behavioral Entropy Rate : R-Software"
-output: html_document
+output: md_document
 ---
 
 ```{r setup, include=FALSE}
