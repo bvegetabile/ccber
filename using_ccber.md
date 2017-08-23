@@ -1,3 +1,6 @@
+Estimation of Behavioral Entropy Rate developed at the Conte Center @ UCI
+=========================================================================
+
 R Markdown
 ----------
 
