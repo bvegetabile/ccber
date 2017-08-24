@@ -8,9 +8,19 @@ Installing `ccber`
 ------------------
 
 The package `devtools` is required to install this `R` package from this
-Github repository. Install this package if it is not already installed.
+Github repository. Install this package first if it is not already
+installed.
 
     install.packages('devtools', dependencies = TRUE)
+
+Once that package has been installed, use the following to install
+`ccber`
+
+    devtools::install_github('bvegetabile/ccber')
+
+Load the package to begin analysis!
+
+    library('ccber')
 
 Including Plots
 ---------------
