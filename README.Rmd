@@ -27,7 +27,7 @@ devtools::install_github('bvegetabile/ccber')
 
 Load the package to begin analysis!
 
-```{r, echo=TRUE, eval=FALSE}
+```{r, echo=TRUE, eval=TRUE}
 library('ccber')
 ```
 
@@ -39,11 +39,15 @@ library('ccber')
 
 Consider the following transition matrix of a first-order Markov chain with three states,
 
-$P = \left(\begin{array}{ccc} 0.2 & 0.3 & 0.5 \\ 0.7 & 0.1 & 0.2 \\ 0.2 & 0.2 & 0.6 \end{array}\right)$
-
 ```{r, echo=TRUE, eval=TRUE}
 P = matrix(c(0.2, 0.3, 0.5, 
              0.7, 0.1, 0.2,
              0.2, 0.2, 0.6), 3,3, byrow = T)
 ```
 
+We can simulate from a Markov process with this using the function `SimulateMarkovChain`
+
+```{r, echo=T, eval=T}
+mc_chain <- SimulateMarkovChain(trans_mat = P, n_sims = 1000)
+print(head(mc_chain, n = 20))
+```
