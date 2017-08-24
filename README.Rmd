@@ -33,9 +33,9 @@ library('ccber')
 
 ## Using `ccber` with Observer Files
 
+## 
 
-
-## Example of Estimating Entropy Rate using `ccber`
+## A Longer Example of How to Estimate Entropy Rate using `ccber`
 
 Consider the following transition matrix of a first-order Markov chain with three states,
 
@@ -48,6 +48,66 @@ P = matrix(c(0.2, 0.3, 0.5,
 We can simulate from a Markov process with this using the function `SimulateMarkovChain`
 
 ```{r, echo=T, eval=T}
-mc_chain <- SimulateMarkovChain(trans_mat = P, n_sims = 1000)
-print(head(mc_chain, n = 20))
+mc_chain <- SimulateMarkovChain(trans_mat = P, n_sims = 5000)
+head(mc_chain, n = 20)
 ```
+
+From this we can calculate a matrix of transition counts 
+
+```{r, echo=T, eval=T}
+tc <- CalcTransitionCounts(mc_chain)
+tc
+```
+
+And then estimate a transition matrix,
+
+```{r, echo=T, eval=T}
+tm <- CalcTransitionMatrix(tc)
+tm
+```
+
+which agrees fairly well with the true `P`.  Additionally we can estimate the stationary distribution of the process in a one of two ways.  The first way is an empirical estimate from the observed sequence.  
+
+```{r, echo=T, eval=T}
+emp_sm <- CalcEmpiricalStationary(mc_chain, state_space = 1:3)
+emp_sm
+```
+
+The second way is an eigendecomposition of the observed transition matrix, though the preferred method is through the empirical estimation procedure.
+
+```{r, echo=T, eval=T}
+eig_sm <- CalcEigenStationary(tm)
+eig_sm
+```
+
+Using both the stationary distribution estimate and the estimate of the transition matrix, the entropy rate of the process can be estimated using the following commands
+
+```{r, echo=T, eval=T}
+entrate1 <- CalcMarkovEntropyRate(tm, emp_sm)
+entrate1
+```
+
+```{r, echo=T, eval=T}
+entrate2 <- CalcMarkovEntropyRate(tm, eig_sm)
+entrate2
+```
+
+Both of these values agree very well with the true entropy rate,
+```{r, echo=T, eval=T}
+true_entropy_rate <- CalcMarkovEntropyRate(P, CalcEigenStationary(P))
+true_entropy_rate
+```
+
+
+## A Shorter Example
+
+If the method of estimation for the stationary distrbution is known, a more simple function is provided to estimate the entropy rate as well.
+
+Both of these values agree very well with the true entropy rate,
+```{r, echo=T, eval=T}
+quicker_estimate <- CalcEntropyRate(mc_chain, 
+                                    state_space = 1:3, 
+                                    stat_method = "Empirical")
+quicker_estimate
+```
+
