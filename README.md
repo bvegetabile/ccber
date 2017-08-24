@@ -3,6 +3,9 @@
 
 See reference: *Early Life Exposure to Unpredictable Maternal Sensory
 Signals Influences Cognitive Development: A Cross-Species Approach*
+Elysia Davis, Stephanie Stour, Jenny Molet, Brian Vegetabile, Laura
+Glynn, Curt Sandman, Kevin Heins, Hal Stern, and Tallie Baram: To appear
+in the Proceedings of the National Academy of Sciences
 
 Installing `ccber`
 ------------------
@@ -22,12 +25,13 @@ Load the package to begin analysis!
 
     library('ccber')
 
-Including Plots
----------------
+Using `ccber` with Observer Files
+---------------------------------
 
-You can also embed plots, for example:
+Example of Estimating Entropy Rate using `ccber`
+------------------------------------------------
 
-![](README_files/figure-markdown_strict/pressure-1.png)
+Consider the following transition matrix of a first-order Markov chain
+with three states,
 
-Note that the `echo = FALSE` parameter was added to the code chunk to
-prevent printing of the R code that generated the plot.
+$P = \\begin{array}{ccc} 0.2 & 0.3 & 0.5 \\\\ 0.7 & 0.1 & 0.2 \\\\ 0.2 & 0.2 & 0.6 \\end{array}$
