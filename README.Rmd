@@ -33,7 +33,36 @@ library('ccber')
 
 ## Using `ccber` with Observer Files
 
-## 
+To use `ccber` to estimate behavioral entropy rate, see the Conte Center website for a description of how to set up files and record observations.  The input files for these functions are described there...
+
+### Running a single file
+
+To run `ccber` with a single file use the following function
+```{r, echo=TRUE, eval=FALSE}
+ber_analyze_file(f_loc,
+                 plot_all=F,
+                 plots_to_file=F,
+                 tactile_padding = 1.0,
+                 auditory_padding = 1.0,
+                 behavior_types=list("mom_auditory_types" = c('Vocal'),
+                                     "mom_tactile_types" = c('TouchBaby',
+                                                            'HoldingBaby'),
+                                     "mom_visual_types" = c('ManipulatingObject'),
+                                     "baby_visual_types" = c('LookAtMomActivity'),
+                                     "missing_types" = c('CantTellHolding',
+                                                         'ActivityNotVisible',
+                                                         'CantTellLooking')),
+                 missing_threshold = 0.1)
+```
+The variables are described below:
+
+* `f_loc` : Location of the file to be analyzed
+* `plot_all` : Logical variable to plot diagnostic plots for this individual. Defaults to `FALSE`
+* `plots_to_file` : Logical variable which plots diagnostic plots to a file.  Currently unused.
+* `tactile_padding` : Padding to be applied to the "event" types of the Observer software.  Padding is right-adjusted and Defaults to 1 second.
+* `auditory_padding` : Padding to be applied to the "event" types of the Observer software.  Padding is right-adjusted and Defaults to 1 second.
+* `behavior_types` : List specifying the "auditory", "tactile", and "visual" behaviors to subset on.  The "missing_types" are description of tags that define missing data.  
+* `missing_threshold` : Proportion value that defines what the threshold of missingness is to include the file or not.  Set to 0.1 reflecting 10% of missingness is acceptable based upon the tags in `behavior_types`.
 
 ## A Longer Example of How to Estimate Entropy Rate using `ccber`
 
