@@ -34,4 +34,8 @@ Example of Estimating Entropy Rate using `ccber`
 Consider the following transition matrix of a first-order Markov chain
 with three states,
 
-$P = \\begin{array}{ccc} 0.2 & 0.3 & 0.5 \\\\ 0.7 & 0.1 & 0.2 \\\\ 0.2 & 0.2 & 0.6 \\end{array}$
+$P = \\left(\\begin{array}{ccc} 0.2 & 0.3 & 0.5 \\\\ 0.7 & 0.1 & 0.2 \\\\ 0.2 & 0.2 & 0.6 \\end{array}\\right)$
+
+    P = matrix(c(0.2, 0.3, 0.5, 
+                 0.7, 0.1, 0.2,
+                 0.2, 0.2, 0.6), 3,3, byrow = T)
