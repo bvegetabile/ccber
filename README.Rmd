@@ -64,7 +64,28 @@ The variables are described below:
 * `behavior_types` : List specifying the "auditory", "tactile", and "visual" behaviors to subset on.  The "missing_types" are description of tags that define missing data.  
 * `missing_threshold` : Proportion value that defines what the threshold of missingness is to include the file or not.  Set to 0.1 reflecting 10% of missingness is acceptable based upon the tags in `behavior_types`.
 
-## A Longer Example of How to Estimate Entropy Rate using `ccber`
+### Running on a Directory of Files
+
+To expedite processing of many files an additionally function is provided to analyze an entire directory of Excel files.  The function `ber_analyze_dir` is similar to the previous function and takes as input `dir_loc`.
+
+```{r, echo=T, eval=F}
+ber_analyze_dir(dir_loc,
+                tactile_padding = 1.0,
+                auditory_padding = 1.0,
+                behavior_types=list("mom_auditory_types" = c('Vocal'),
+                                    "mom_tactile_types" = c('TouchBaby',
+                                                            'HoldingBaby'),
+                                    "mom_visual_types" = c('ManipulatingObject'),
+                                    "baby_visual_types" = c('LookAtMomActivity'),
+                                    "missing_types" = c('CantTellHolding',
+                                                        'ActivityNotVisible',
+                                                        'CantTellLooking')),
+                missing_threshold = 0.1)
+```
+
+The inputs that are described in the previous section are the same and are passed as input to multiple calls of `ber_analyze_file`.  
+
+## An Example of How to Estimate Entropy Rate using `ccber`
 
 Consider the following transition matrix of a first-order Markov chain with three states,
 
@@ -128,7 +149,7 @@ true_entropy_rate
 ```
 
 
-## A Shorter Example
+## There's a Quicker Way Than That...
 
 If the method of estimation for the stationary distrbution is known, a more simple function is provided to estimate the entropy rate as well.
 

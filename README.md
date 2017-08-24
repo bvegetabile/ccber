@@ -72,8 +72,31 @@ The variables are described below:
     reflecting 10% of missingness is acceptable based upon the tags in
     `behavior_types`.
 
-A Longer Example of How to Estimate Entropy Rate using `ccber`
---------------------------------------------------------------
+### Running on a Directory of Files
+
+To expedite processing of many files an additionally function is
+provided to analyze an entire directory of Excel files. The function
+`ber_analyze_dir` is similar to the previous function and takes as input
+`dir_loc`.
+
+    ber_analyze_dir(dir_loc,
+                    tactile_padding = 1.0,
+                    auditory_padding = 1.0,
+                    behavior_types=list("mom_auditory_types" = c('Vocal'),
+                                        "mom_tactile_types" = c('TouchBaby',
+                                                                'HoldingBaby'),
+                                        "mom_visual_types" = c('ManipulatingObject'),
+                                        "baby_visual_types" = c('LookAtMomActivity'),
+                                        "missing_types" = c('CantTellHolding',
+                                                            'ActivityNotVisible',
+                                                            'CantTellLooking')),
+                    missing_threshold = 0.1)
+
+The inputs that are described in the previous section are the same and
+are passed as input to multiple calls of `ber_analyze_file`.
+
+An Example of How to Estimate Entropy Rate using `ccber`
+--------------------------------------------------------
 
 Consider the following transition matrix of a first-order Markov chain
 with three states,
@@ -88,7 +111,7 @@ We can simulate from a Markov process with this using the function
     mc_chain <- SimulateMarkovChain(trans_mat = P, n_sims = 5000)
     head(mc_chain, n = 20)
 
-    ##  [1] 2 1 1 1 3 3 2 1 3 1 3 3 1 3 3 3 3 1 3 3
+    ##  [1] 1 3 3 2 2 1 2 1 1 2 1 3 3 3 3 3 3 1 1 2
 
 From this we can calculate a matrix of transition counts
 
@@ -96,9 +119,9 @@ From this we can calculate a matrix of transition counts
     tc
 
     ##      [,1] [,2] [,3]
-    ## [1,]  324  469  744
-    ## [2,]  744  103  195
-    ## [3,]  469  469 1482
+    ## [1,]  294  479  764
+    ## [2,]  733   83  190
+    ## [3,]  509  444 1503
 
 And then estimate a transition matrix,
 
@@ -106,9 +129,9 @@ And then estimate a transition matrix,
     tm
 
     ##           [,1]       [,2]      [,3]
-    ## [1,] 0.2108003 0.30513988 0.4840599
-    ## [2,] 0.7140115 0.09884837 0.1871401
-    ## [3,] 0.1938017 0.19380165 0.6123967
+    ## [1,] 0.1912817 0.31164606 0.4970722
+    ## [2,] 0.7286282 0.08250497 0.1888668
+    ## [3,] 0.2072476 0.18078176 0.6119707
 
 which agrees fairly well with the true `P`. Additionally we can estimate
 the stationary distribution of the process in a one of two ways. The
@@ -118,7 +141,7 @@ first way is an empirical estimate from the observed sequence.
     emp_sm
 
     ##        [,1]   [,2]   [,3]
-    ## [1,] 0.3074 0.2084 0.4842
+    ## [1,] 0.3074 0.2012 0.4914
 
 The second way is an eigendecomposition of the observed transition
 matrix, though the preferred method is through the empirical estimation
@@ -127,7 +150,7 @@ procedure.
     eig_sm <- CalcEigenStationary(tm)
     eig_sm
 
-    ## [1] 0.3073593 0.2082486 0.4843921
+    ## [1] 0.3072518 0.2012153 0.4915330
 
 Using both the stationary distribution estimate and the estimate of the
 transition matrix, the entropy rate of the process can be estimated
@@ -136,12 +159,12 @@ using the following commands
     entrate1 <- CalcMarkovEntropyRate(tm, emp_sm)
     entrate1
 
-    ## [1] 1.351389
+    ## [1] 1.337133
 
     entrate2 <- CalcMarkovEntropyRate(tm, eig_sm)
     entrate2
 
-    ## [1] 1.351416
+    ## [1] 1.33711
 
 Both of these values agree very well with the true entropy rate,
 
@@ -150,8 +173,8 @@ Both of these values agree very well with the true entropy rate,
 
     ## [1] 1.360979
 
-A Shorter Example
------------------
+There's a Quicker Way Than That...
+----------------------------------
 
 If the method of estimation for the stationary distrbution is known, a
 more simple function is provided to estimate the entropy rate as well.
@@ -163,4 +186,4 @@ Both of these values agree very well with the true entropy rate,
                                         stat_method = "Empirical")
     quicker_estimate
 
-    ## [1] 1.351389
+    ## [1] 1.337133
