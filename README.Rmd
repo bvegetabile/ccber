@@ -9,7 +9,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # $\texttt{ccber}$: an `R` Package for the Estimation of Behavioral Entropy Rate - Developed for the Conte Center @ UCI
 
-See reference: _Early Life Exposure to Unpredictable Maternal Sensory Signals Influences Cognitive Development: A Cross-Species Approach_ Elysia Davis, Stephanie Stour, Jenny Molet, Brian Vegetabile, Laura Glynn, Curt Sandman, Kevin Heins, Hal Stern, and Tallie Baram: To appear in the Proceedings of the National Academy of Sciences
+See reference: Davis, E.P., Stout, S.A., Molet, J., Vegetabile, B., Glynn, L.M., Sandman, C.A., Heins, K., Stern, H., Baram, T.Z. (in press). **Exposure to unpredictable maternal sensory signals influences cognitive development across-species**. _Proceedings of the National Academy of Sciences_.
 
 ## Installing `ccber`
 

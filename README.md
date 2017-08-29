@@ -1,11 +1,11 @@
 `ccber`: an `R` Package for the Estimation of Behavioral Entropy Rate - Developed for the Conte Center @ UCI
 ============================================================================================================
 
-See reference: *Early Life Exposure to Unpredictable Maternal Sensory
-Signals Influences Cognitive Development: A Cross-Species Approach*
-Elysia Davis, Stephanie Stour, Jenny Molet, Brian Vegetabile, Laura
-Glynn, Curt Sandman, Kevin Heins, Hal Stern, and Tallie Baram: To appear
-in the Proceedings of the National Academy of Sciences
+See reference: Davis, E.P., Stout, S.A., Molet, J., Vegetabile, B.,
+Glynn, L.M., Sandman, C.A., Heins, K., Stern, H., Baram, T.Z. (in
+press). **Exposure to unpredictable maternal sensory signals influences
+cognitive development across-species**. *Proceedings of the National
+Academy of Sciences*.
 
 Installing `ccber`
 ------------------
@@ -111,7 +111,7 @@ We can simulate from a Markov process with this using the function
     mc_chain <- SimulateMarkovChain(trans_mat = P, n_sims = 5000)
     head(mc_chain, n = 20)
 
-    ##  [1] 2 1 1 1 2 1 2 1 1 3 3 3 1 2 1 3 3 3 2 1
+    ##  [1] 3 2 1 3 2 1 2 3 3 2 1 1 3 3 3 3 1 3 2 1
 
 From this we can calculate a matrix of transition counts
 
@@ -119,9 +119,9 @@ From this we can calculate a matrix of transition counts
     tc
 
     ##      [,1] [,2] [,3]
-    ## [1,]  306  484  779
-    ## [2,]  784  104  188
-    ## [3,]  479  487 1388
+    ## [1,]  284  451  761
+    ## [2,]  719   97  231
+    ## [3,]  493  499 1464
 
 And then estimate a transition matrix,
 
@@ -129,9 +129,9 @@ And then estimate a transition matrix,
     tm
 
     ##           [,1]       [,2]      [,3]
-    ## [1,] 0.1950287 0.30847674 0.4964946
-    ## [2,] 0.7286245 0.09665428 0.1747212
-    ## [3,] 0.2034834 0.20688190 0.5896347
+    ## [1,] 0.1898396 0.30147059 0.5086898
+    ## [2,] 0.6867240 0.09264565 0.2206304
+    ## [3,] 0.2007329 0.20317590 0.5960912
 
 which agrees fairly well with the true `P`. Additionally we can estimate
 the stationary distribution of the process in a one of two ways. The
@@ -140,8 +140,8 @@ first way is an empirical estimate from the observed sequence.
     emp_sm <- CalcEmpiricalStationary(mc_chain, state_space = 1:3)
     emp_sm
 
-    ##        [,1]   [,2]  [,3]
-    ## [1,] 0.3138 0.2152 0.471
+    ##        [,1]   [,2]   [,3]
+    ## [1,] 0.2992 0.2094 0.4914
 
 The second way is an eigendecomposition of the observed transition
 matrix, though the preferred method is through the empirical estimation
@@ -150,7 +150,7 @@ procedure.
     eig_sm <- CalcEigenStationary(tm)
     eig_sm
 
-    ## [1] 0.3137643 0.2150539 0.4711819
+    ## [1] 0.2992599 0.2094419 0.4912983
 
 Using both the stationary distribution estimate and the estimate of the
 transition matrix, the entropy rate of the process can be estimated
@@ -159,12 +159,12 @@ using the following commands
     entrate1 <- CalcMarkovEntropyRate(tm, emp_sm)
     entrate1
 
-    ## [1] 1.355618
+    ## [1] 1.362595
 
     entrate2 <- CalcMarkovEntropyRate(tm, eig_sm)
     entrate2
 
-    ## [1] 1.355656
+    ## [1] 1.362592
 
 Both of these values agree very well with the true entropy rate,
 
@@ -186,4 +186,4 @@ Both of these values agree very well with the true entropy rate,
                                         stat_method = "Empirical")
     quicker_estimate
 
-    ## [1] 1.355618
+    ## [1] 1.362595

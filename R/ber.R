@@ -30,6 +30,8 @@ ber_analyze_dir <- function(dir_loc,
                                                                     'CantTellLooking')),
                             missing_threshold = 0.1){
 
+  old_dir <- getwd()
+  setwd(dir_loc)
 
   # Reading in data
   all_files = list.files(dir_loc, pattern="*.xlsx")
@@ -70,6 +72,10 @@ ber_analyze_dir <- function(dir_loc,
   }
   run_dur <- Sys.time() - run_start
   message(paste('Script total run time: ', round(as.numeric(run_dur, units='mins'),3), 'minutes'))
+
+  # Resetting the old directory pointer
+  setwd(old_dir)
+
   return(resultsDF)
 }
 
@@ -109,8 +115,30 @@ ber_analyze_file <- function(f_loc,
   # extracting data from file using the readxl package
   behavior_data <- data.frame(readxl::read_xlsx(f_loc))
 
+
   # Mother ID should be in first cell in the observation column
   id_number <- behavior_data$Observation[1]
+
+  if(sum(is.na(behavior_data$Behavior)) > 0){
+    message(message(paste('ERROR: ', id_number, ' - Missing Behavior Information')))
+    data2return <- data.frame('SubjectID'=as.character(id_number),
+                              'CanEstimateEntropy'=FALSE,
+                              'EntropyRate'=NA,
+                              'TotalNumberOfTransitions'=NA,
+                              'CombinedVideoDuration'=NA,
+                              'PercentMissing'=NA,
+                              'AuditoryCounts'=NA,
+                              'AuditoryTotalTime'=NA,
+                              'AuditoryAverageTime'=NA,
+                              'VisualCounts'=NA,
+                              'VisualTotalTime'=NA,
+                              'VisualAverageTime'=NA,
+                              'TactileCounts'=NA,
+                              'TactileTotalTime'=NA,
+                              'TactileAverageTime'=NA,
+                              stringsAsFactors = F)
+    return(data2return)
+  }
 
   # Identifying the last time between both the mother and baby files
   lasttime = max(behavior_data$Time_Relative_sf)
@@ -120,12 +148,13 @@ ber_analyze_file <- function(f_loc,
   ##############################################################################
   # Finding the total amount of missing time
   missing <- .subset_by_types(behavior_data,
-                             missing_types)
+                              missing_types)
+
   percent_missing <- sum(missing$Duration_sf)/endtime
 
   if(percent_missing>=missing_threshold){
     message(paste('Mother/Child: ', id_number, ' - Not enough usable time'))
-    data2return <- data.frame('SubjectID'=id_number,
+    data2return <- data.frame('SubjectID'=as.character(id_number),
                               'CanEstimateEntropy'=FALSE,
                               'EntropyRate'=NA,
                               'TotalNumberOfTransitions'=NA,
@@ -139,7 +168,8 @@ ber_analyze_file <- function(f_loc,
                               'VisualAverageTime'=NA,
                               'TactileCounts'=NA,
                               'TactileTotalTime'=NA,
-                              'TactileAverageTime'=NA)
+                              'TactileAverageTime'=NA,
+                              stringsAsFactors = F)
     return(data2return)
   }
   # ##############################################################################
@@ -422,7 +452,7 @@ plot_transitions <- function(transition_matrix, id_number){
   dat <- c()
   for(i in 1:length(event_str)){
     dat <- rbind(dat, dset[(dset$Behavior == event_str[i]) &
-                             ((dset$Event_Type =='State start') | (dset$Event_Type =='State point')) ,
+                             ((dset$Event_Type =='State start') | (dset$Event_Type =='State point') | (dset$Event_Type =='Point')) ,
                            c("Time_Relative_sf",'Duration_sf')])
   }
   dat$Duration_sf[dat$Duration_sf == 0] <- padding
