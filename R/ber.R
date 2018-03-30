@@ -28,7 +28,8 @@ ber_analyze_dir <- function(dir_loc,
                                                 "missing_types" = c('CantTellHolding',
                                                                     'ActivityNotVisible',
                                                                     'CantTellLooking')),
-                            missing_threshold = 0.1){
+                            missing_threshold = 0.1,
+                            log_file = paste(Sys.Date(), '-ber-logfile.txt', sep='')){
 
   old_dir <- getwd()
   setwd(dir_loc)
@@ -60,18 +61,39 @@ ber_analyze_dir <- function(dir_loc,
 
   run_start <- Sys.time()
   run_count <- 1
+  files_to_check <- c()
   for (i in 1:n_files){
     individual_file <- all_files[i]
-    resultsDF[i,] <- ber_analyze_file(individual_file,
-                                      tactile_padding=tactile_padding,
-                                      auditory_padding=auditory_padding,
-                                      behavior_types=behavior_types,
-                                      missing_threshold=missing_threshold)
+    capture.output(file_results <- ber_analyze_file(individual_file,
+                                     tactile_padding=tactile_padding,
+                                     auditory_padding=auditory_padding,
+                                     behavior_types=behavior_types,
+                                     missing_threshold=missing_threshold), file=NULL)
+
+    if(sum(unlist(file_results$file_checks)) != 6){
+      files_to_check <- c(files_to_check, tail(strsplit(individual_file, '/')[[1]], 1))
+      capture.output(file_results <- ber_analyze_file(individual_file,
+                                       tactile_padding=tactile_padding,
+                                       auditory_padding=auditory_padding,
+                                       behavior_types=behavior_types,
+                                       missing_threshold=missing_threshold),
+                     file = log_file, append = T)
+      resultsDF[i,] <- file_results$estimates
+      message(paste('Warning - See log for file : ', tail(strsplit(individual_file, '/')[[1]], 1)))
+    } else{
+      resultsDF[i,] <- file_results$estimates
+      message(paste('Completed without issue    : ', tail(strsplit(individual_file, '/')[[1]], 1)))
+    }
     run_count = run_count + 1
-    message(paste('COMPLETED ID: ', resultsDF[i,1]))
   }
   run_dur <- Sys.time() - run_start
   message(paste('Script total run time: ', round(as.numeric(run_dur, units='mins'),3), 'minutes'))
+
+  message(paste(c(rep('-',25), ' Check the log for files below ', rep('-',25)), sep=''))
+
+  for(i in 1:length(files_to_check)){
+    message(files_to_check[i])
+  }
 
   # Resetting the old directory pointer
   setwd(old_dir)
@@ -105,6 +127,14 @@ ber_analyze_file <- function(f_loc,
                                                                      'CantTellLooking')),
                              missing_threshold = 0.1){
 
+  file_checks <- list(header_pass = T,
+                      subjid_pass = T,
+                      misdat_pass = T,
+                      blabel_pass = T,
+                      elabel_pass = T,
+                      misnes_pass = T)
+
+
   # Unpacking input behavior types ---------------------------------------------
   mom_auditory_types <- behavior_types$mom_auditory_types
   mom_tactile_types <- behavior_types$mom_tactile_types
@@ -114,13 +144,101 @@ ber_analyze_file <- function(f_loc,
 
   # extracting data from file using the readxl package
   behavior_data <- data.frame(readxl::read_xlsx(f_loc))
+  cat(paste(c(rep('-', 78), '\n'),collapse = ''))
+  cat(paste('Filename:        ', tail(strsplit(f_loc, '/')[[1]], 1), '\n'))
+  cat(paste('Time of Analysis:', Sys.time(), '\n'))
+  cat(paste(c(rep('-', 78), '\n'),collapse = ''))
 
+  cat(paste(c(rep('*', 27), ' Performing File Check ',rep('*', 27), '\n'), collapse = ''))
+  cat(paste('- Checking for required Columns:\n'))
+
+  cat(paste('\tObservation      : First cell used to set "SubjectID"\n'))
+  cat(paste('\tBehavior         : Set of used behavior labels\n'))
+  cat(paste('\tTime_Relative_sf : Sets the start point for each action\n'))
+  cat(paste('\tDuration_sf      : Time_Relative_sf + Duration_sf sets end points\n'))
+  cat(paste('\tEvent_Type       : Defines point events and states\n'))
+
+  columns_needed <- c('Observation', 'Behavior', 'Time_Relative_sf', 'Duration_sf', 'Event_Type')
+  columns_found <- colnames(behavior_data)
+  if(sum(!(columns_needed %in% columns_found)) > 0){
+    file_checks$header_pass <- F
+    cat(paste('--- FAILED : Missing Column Headers:\n'))
+    cat('\t')
+    cat(paste(columns_needed[!(columns_needed %in% columns_found)], collapse = '\n\t'))
+    cat('\n')
+    cat(paste(c(rep('*', 9), ' IF FILE FORMATS HAVE CHANGED, THIS SCRIPT MUST BE UPDATED ',rep('*', 9), '\n'), collapse = ''))
+    cat(paste(c(rep('-', 78), '\n'),collapse = ''))
+    cat(paste(c(rep('*', 16), ' File Failed: Unable to Estimate Entropy Rate ',rep('*', 16), '\n'), collapse = ''))
+    cat(paste(c(rep('-', 78), '\n'),collapse = ''))
+    data2return <- data.frame('SubjectID'=NA,
+                              'CanEstimateEntropy'=FALSE,
+                              'EntropyRate'=NA,
+                              'TotalNumberOfTransitions'=NA,
+                              'CombinedVideoDuration'=NA,
+                              'PercentMissing'=NA,
+                              'AuditoryCounts'=NA,
+                              'AuditoryTotalTime'=NA,
+                              'AuditoryAverageTime'=NA,
+                              'VisualCounts'=NA,
+                              'VisualTotalTime'=NA,
+                              'VisualAverageTime'=NA,
+                              'TactileCounts'=NA,
+                              'TactileTotalTime'=NA,
+                              'TactileAverageTime'=NA,
+                              stringsAsFactors = F)
+    return(list(estimates=data2return, file_checks=file_checks))
+  } else{
+    cat(paste('--- PASSED : Found all Required Column Headers\n'))
+  }
 
   # Mother ID should be in first cell in the observation column
-  id_number <- behavior_data$Observation[1]
 
-  if(sum(is.na(behavior_data$Behavior)) > 0){
-    message(message(paste('ERROR: ', id_number, ' - Missing Behavior Information')))
+  cat(paste('- Checking "Observation" Column For Subject ID\n'))
+  id_number <- behavior_data$Observation[1]
+  if(is.na(id_number) == T){
+    file_checks$subjid_pass <- F
+    cat(paste('--- FAILED: Data is "NA" in Column J, Cell 1\n'))
+    cat(paste(c(rep('-', 78), '\n'),collapse = ''))
+    cat(paste(c(rep('*', 16), ' File Failed: Unable to Estimate Entropy Rate ',rep('*', 16), '\n'), collapse = ''))
+    cat(paste(c(rep('-', 78), '\n'),collapse = ''))
+    return(NULL)
+  } else{
+    cat(paste('--- PASSED: Using Subject ID from Column J, Cell 1:', id_number, '\n'))
+  }
+
+
+  cat(paste('- Checking for Missing Data in Columns\n'))
+  if(sum(is.na(behavior_data$Behavior)) > 0 |
+     sum(is.na(behavior_data$Time_Relative_sf)) > 0 |
+     sum(is.na(behavior_data$Duration_sf)) > 0 |
+     sum(is.na(behavior_data$Event_Type)) > 0){
+
+    file_checks$header_pass <- F
+
+    if(sum(is.na(behavior_data$Behavior)) > 0){
+      cat(paste('--- "Behavior"         : FAILED - Check Cells:', paste(which(is.na(behavior_data$Behavior))+1, collapse = ', '), '\n'))
+    } else{
+      cat(paste('--- "Behavior"         : PASSED\n'))
+    }
+
+    if(sum(is.na(behavior_data$Time_Relative_sf)) > 0){
+      cat(paste('--- "Time_Relative_sf" : FAILED - Check Cells:', paste(which(is.na(behavior_data$Time_Relative_sf))+1, collapse = ', '), '\n'))
+    } else{
+      cat(paste('--- "Time_Relative_sf" : PASSED\n'))
+    }
+
+    if(sum(is.na(behavior_data$Duration_sf)) > 0){
+      cat(paste('--- "Duration_sf"      : FAILED - Check Cells:', paste(which(is.na(behavior_data$Duration_sf))+1, collapse = ', '), '\n'))
+    } else{
+      cat(paste('--- "Duration_sf"      : PASSED\n'))
+    }
+
+    if(sum(is.na(behavior_data$Event_Type)) > 0){
+      cat(paste('--- "Event_Type"       : FAILED - Check Cells:', paste(which(is.na(behavior_data$Event_Type))+1, collapse = ', '), '\n'))
+    } else{
+      cat(paste('--- "Event_Type"       : PASSED\n'))
+    }
+
     data2return <- data.frame('SubjectID'=as.character(id_number),
                               'CanEstimateEntropy'=FALSE,
                               'EntropyRate'=NA,
@@ -137,7 +255,48 @@ ber_analyze_file <- function(f_loc,
                               'TactileTotalTime'=NA,
                               'TactileAverageTime'=NA,
                               stringsAsFactors = F)
-    return(data2return)
+    cat(paste(c(rep('-', 78), '\n'),collapse = ''))
+    cat(paste(c(rep('*', 16), ' File Failed: Unable to Estimate Entropy Rate ',rep('*', 16), '\n'), collapse = ''))
+    cat(paste(c(rep('-', 78), '\n'),collapse = ''))
+    return(list(estimates=data2return, file_checks=file_checks))
+  } else{
+    cat(paste('--- "Behavior"         : PASSED\n'))
+    cat(paste('--- "Time_Relative_sf" : PASSED\n'))
+    cat(paste('--- "Duration_sf"      : PASSED\n'))
+    cat(paste('--- "Event_Type"       : PASSED\n'))
+  }
+
+  cat(paste('- Checking "Behavior" Column For Unused Labels:\n'))
+  labels_used <- unique(behavior_data$Behavior)
+  if(sum(!(labels_used %in% as.vector(unlist(behavior_types)))) > 0){
+    cat(paste('--- WARNING : Unused Labels in "Behavior" Column, See Below:\n'))
+    unused_labels <- labels_used[!(labels_used %in% as.vector(unlist(behavior_types)))]
+    for(ul in unused_labels){
+      if(ul %in% c('NotHoldingBaby', 'NotLookAtMomActivity', 'NoObjectInHand')){
+        cat(paste('\tExpected Label  : "', ul, '", not used in analysis', '\n', sep=''))
+      } else {
+        file_checks$blabel_pass <- F
+        cat(paste('\tUnexpected Label: "', ul, '", Cells: ', paste(which(behavior_data$Behavior == ul)+1, collapse = ','), '\n', sep=''))
+      }
+    }
+    cat(paste('--- NOTE: Investigate this if these do not look familar\n'))
+  } else {
+    cat(paste('--- PASSED : No Unused Labels in "Behavior" Column\n'))
+  }
+
+  cat(paste('- Checking "Event_Type" Column For Labels:\n'))
+  e_type_labels <- unique(behavior_data$Event_Type)
+  e_type_expected <- c('State start', 'State point', 'Point', 'State stop', 'State Stop')
+  if(sum(!(e_type_labels %in% e_type_expected)) > 0){
+    cat(paste('--- WARNING : Unused Labels in "Event_Type" Column, See Below:\n'))
+    unused_labels <- e_type_labels[!(e_type_labels %in% e_type_expected)]
+    for(ul in unused_labels){
+        file_checks$elabel_pass <- F
+        cat(paste('\tLabel: "', ul, '", Cells: ', paste(which(behavior_data$Event_Type == ul)+1, collapse = ','), '\n', sep=''))
+    }
+    cat(paste('--- NOTE: This may require a fix to the function ".subset_by_types()" \n'))
+  } else {
+    cat(paste('--- PASSED : No Unused Labels in "Event_Type" Column\n'))
   }
 
   # Identifying the last time between both the mother and baby files
@@ -147,13 +306,14 @@ ber_analyze_file <- function(f_loc,
   endtime = lasttime + lastduration
   ##############################################################################
   # Finding the total amount of missing time
+  cat(paste('- Checking Missingness based on "missing_types"\n'))
   missing <- .subset_by_types(behavior_data,
                               missing_types)
 
   percent_missing <- sum(missing$Duration_sf)/endtime
-
+  cat(paste('--- Percent Missingness:', round(percent_missing,3), '\n'))
   if(percent_missing>=missing_threshold){
-    message(paste('Mother/Child: ', id_number, ' - Not enough usable time'))
+    file_checks$misnes_pass <- F
     data2return <- data.frame('SubjectID'=as.character(id_number),
                               'CanEstimateEntropy'=FALSE,
                               'EntropyRate'=NA,
@@ -170,7 +330,10 @@ ber_analyze_file <- function(f_loc,
                               'TactileTotalTime'=NA,
                               'TactileAverageTime'=NA,
                               stringsAsFactors = F)
-    return(data2return)
+    cat(paste('--- FAILED: Missingness greater than threshold', missing_threshold, '\n'))
+    return(list(estimates=data2return, file_checks=file_checks))
+  } else{
+    cat(paste('--- PASSED : Percent missing less than threshold\n'))
   }
   # ##############################################################################
   #
@@ -270,8 +433,10 @@ ber_analyze_file <- function(f_loc,
                             'TactileTotalTime'=sum(tac_states[,3]),
                             'TactileAverageTime'=mean(tac_states[,3]),
                             stringsAsFactors = F)
-
-  return(data2return)
+  cat(paste(c(rep('-', 78), '\n'),collapse = ''))
+  cat(paste(c(rep('*', 24), ' File Completed Successfully ',rep('*', 24), '\n'), collapse = ''))
+  cat(paste(c(rep('-', 78), '\n'),collapse = ''))
+  return(list(estimates=data2return, file_checks=file_checks))
 }
 
 
