@@ -1,0 +1,191 @@
+---
+title: "CCBER - Software Description Document"
+author: "Brian Vegetabile"
+date: "June 2, 2018"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Overview of Software
+
+$\texttt{ccber}$ is an `R` package for the estimation of behavioral entropy rate, developed for the Conte Center @ UCI.  The package reads in an individual, or set of, excel files and processes the file to estimate the entropy rate from the supplied data.  This document describes usage and input formats that are expected with this software.
+
+See reference: Davis, E.P., Stout, S.A., Molet, J., Vegetabile, B., Glynn, L.M., Sandman, C.A., Heins, K., Stern, H., Baram, T.Z. (in press). **Exposure to unpredictable maternal sensory signals influences cognitive development across-species**. _Proceedings of the National Academy of Sciences_.
+
+An overview of behavioral entropy rate estimation in the context of human behavior is found in the supplemental in the reference above.  
+
+The source files for `ccber` are found at [github.com/bvegetabile/ccber](https://www.github.com/bvegetabile/ccber)
+
+## Installation of `ccber`
+
+The package `devtools` is required to install this `R` package from this Github repository.  Install this package first if it is not already installed.
+
+```{r, echo=TRUE, eval=FALSE}
+install.packages('devtools', dependencies = TRUE)
+```
+
+Once that package has been installed, use the following to install `ccber`
+
+```{r, echo=TRUE, eval=FALSE}
+devtools::install_github('bvegetabile/ccber')
+```
+
+Load the package to begin analysis!
+
+```{r, echo=TRUE, eval=TRUE}
+library('ccber')
+```
+
+## Function Overviews
+
+### Function : `ber_analyze_file`
+
+The following function from `ccber` is one of the primary functions for the estimation of entropy rate:
+
+```{r, echo=TRUE, eval=FALSE}
+ber_analyze_file(f_loc,
+                 plot_all=F,
+                 plots_to_file=F,
+                 tactile_padding = 1.0,
+                 auditory_padding = 1.0,
+                 behavior_types=list(
+                   "mom_auditory_types" = c('Vocal'),
+                   "mom_tactile_types" = c('TouchBaby',
+                                           'HoldingBaby'),
+                   "mom_visual_types" = c('ManipulatingObject'),
+                   "baby_visual_types" = c('LookAtMomActivity'),
+                   "missing_types" = c('CantTellHolding',
+                                       'ActivityNotVisible',
+                                       'CantTellLooking')),
+                 missing_threshold = 0.1)
+```
+
+Below is a more detailed description of each input:
+
+| Input               | Input Type    | Description               
+|:-------------------:|:-------------:|:--------------------------------------------------
+| `f_loc`             | String        | String indicating the location of the file of interest
+| `plot_all`          | Logical       | Indicator of whether to provide visualization to the user. Values : `True` or `False`
+| `plots_to_file`     | Logical       | Indicator of whether or not to save visuals. Currently not implemented.  
+| `tactile_padding`   | Numeric       | Value (in seconds) to right pad each tactile point event
+| `auditory_padding`  | Numeric       | Value (in seconds) to right pad each auditory point event
+| `behavior_types`    | List          | List outlining the behavioral states expected.  Required : `mom_auditory_types`, `mom_tactile_types`, `mom_visual_types`, `baby_visual_types`, `missing_types`.  These categories define the sensory domains as in the original paper.  See the example code above for the default values expected in each category.  
+| `missing_threshold` | Numeric       | Value (a proportion) that indicators how much missingness is acceptable.  This threshold is defined to be the percentage of the behavioral sequence that is represented by missing types defined in `missing_types`.  
+
+#### Example Usage
+
+```{r, echo=TRUE, eval=FALSE}
+ber_analyze_file('./testfiles/Entropy_6m - 88888HE - Event Logs.xlsx')
+```
+
+#### Output
+
+`ber_analyze_file` returns a `R` `data.frame` with the following column headings
+
+| Column Header              | Description               
+|:-------------------------- |:--------------------------------------------------
+| `SubjectID`                | Subject ID found during analysis of file
+| `CanEstimateEntropy`       | Indicator of success or failure in estimating entropy rate
+| `EntropyRate`              | Estimate of entropy rate between 0 and $log_2(K)$ where $K$ is the total number of states
+| `TotalNumberOfTransitions` | The total number of events considered in the final event sequence
+| `CombinedVideoDuration`    | Total duration of the video (`endtime` + `final duration`)
+| `PercentMissing`           | Proportion of time represented by `missing_types` category
+| `AuditoryCounts`           | Total number of events in auditory category
+| `AuditoryTotalTime`        | Total time representing events in auditory category
+| `AuditoryAverageTime`      | Average duration of events in auditory category
+| `VisualCounts`             | Total number of events in visual category
+| `VisualTotalTime`          | Total time representing events in visual category
+| `VisualAverageTime`        | Average duration of events in visual category
+| `TactileCounts`            | Total number of events in tactile category
+| `TactileTotalTime`         | Total time representing events in tactile category
+| `TactileTotalTime`         | Average duration of events in tactile category
+
+
+### Function : `ber_analyze_dir`
+
+The following function is another primary functions for the estimation of entropy rate.  Given a directory, the function makes multiple calls to `ber_analyze_file` to analyze the excel files within that directory.  Note that there is no plotting capability currently included when operating on directories. 
+
+```{r, echo=TRUE, eval=FALSE}
+ber_analyze_dir(dir_loc,
+                tactile_padding = 1.0,
+                auditory_padding = 1.0,
+                behavior_types=list(
+                  "mom_auditory_types" = c('Vocal'),
+                  "mom_tactile_types" = c('TouchBaby',
+                                          'HoldingBaby'),
+                  "mom_visual_types" = c('ManipulatingObject'),
+                  "baby_visual_types" = c('LookAtMomActivity'),
+                  "missing_types" = c('CantTellHolding',
+                                      'ActivityNotVisible',
+                                      'CantTellLooking')),
+                missing_threshold = 0.1)
+```
+
+
+| Input               | Input Type    | Description               
+|:-------------------:|:-------------:|:--------------------------------------------------
+| `dir_loc`           | String        | String indicating the location of the directory of interest
+| `tactile_padding`   | Numeric       | Value (in seconds) to right pad each tactile point event
+| `auditory_padding`  | Numeric       | Value (in seconds) to right pad each auditory point event
+| `behavior_types`    | List          | List outlining the behavioral states expected.  Required : `mom_auditory_types`, `mom_tactile_types`, `mom_visual_types`, `baby_visual_types`, `missing_types`.  These categories define the sensory domains as in the original paper.  See the example code above for the default values expected in each category.  
+| `missing_threshold` | Numeric       | Value (a proportion) that indicators how much missingness is acceptable.  This threshold is defined to be the percentage of the behavioral sequence that is represented by missing types defined in `missing_types`. 
+
+
+#### Example Usage
+
+From the directory where the files of interest are located type the following:
+
+```{r, echo=TRUE, eval=FALSE}
+ber_analyze_dir('.')
+```
+#### Output
+
+`ber_analyze_dir` returns a `R` `data.frame` with column headings as in `ber_analyze_file`.  Each row of the `data.frame` represents the results from calling `ber_analyze_file` on a file.
+
+## Input file formats
+
+This section describes the expected input file format required for the software.  It is also identifies important columns utilized in the estimation of entropy rate.  
+
+#### File Format Type
+
+At the moment, the required format is an Excel `.xlsx` file.  In the future this may be modifed to include `.csv` files, by altering specific lines of code in `ber.R`.  Specifically, line 37 within `ber_analyze_dir` should be altered to accept different string patterns:
+```{r, eval=F, echo=T}
+all_files = list.files(dir_loc, pattern="*.xlsx")
+```
+and line 116 within `ber_analyze_file` should be changed read `.csv` files:
+```{r, eval=F, echo=T}
+behavior_data <- data.frame(readxl::read_xlsx(f_loc))
+```
+
+#### File Organization
+
+Below is a visualization of a current file that successfully is processed by `ccber` located within the `testfiles` subdirectory of the source files:
+
+![Screenshot of the test file "Entropy_6m - 99999LE - Event Logs.xlsx"](testfile_screenshot.png)
+
+The expected column headings are:
+
+| Column Heading                | Used? | Description               
+|:-----------------------------:|:-----:|:--------------------------------------------------
+| `Date_Time_Absolute_dmy_hmsf` | No    | Absolute Time - Day-Month-Year Hour:Min:Sec.Millisec (Military Time)
+| `Date_dmy`                    | No    | Absolute Time - Day-Month-Year 
+| `Time_Absolute_hms`           | No    | Absolute Time - Hour:Min:Sec
+| `Time_Absolute_f`             | No    | ??? Appears to be millisecond part ???
+| `Time_Relative_hmsf`          | No    | Relative Time - Hour:Min:Sec.Millisec
+| `Time_Relative_hms`           | No    | Relative Time - Hour:Min:Sec.Millisec
+| `Time_Relative_f`             |	No    | ??? Appears to be millisecond part ???
+| `Time_Relative_sf`            | Yes   | Relative Time - Seconds.  Used as starting point for each instance in the video
+| `Duration_sf`                 | Yes   | Relative Time - Seconds.  Duration of the the instance.  The time of an event is `Time_Relative_sf` + `Duration_sf`
+| `Observation`                 | Yes   | Typically Subject ID.  Cell `J1` is used as the Subject ID that is reported from `ber_analyze_dir` and `ber_analyze_file` 
+| `Event_Log`                   | No    | Unknown
+| `Behavior`                    | Yes   | Used to find and match against `behavior_types` specified in `ber_analyze_dir` and `ber_analyze_file` 
+| `Event_Type`                  | Yes   | `State start` indicates cells which will be used as _events_. `Point` instances that are included will be right padded to become events.  `State stop` rows are ignored.    
+
+The order of the rows should **not** matter, but it is best to be safe and keep the organization that is above for ease of processing.  
+
+### Input File Tests
+
+when `ber_analyze_file` is run, a series of tests is performed to check the input file.  
