@@ -35,9 +35,51 @@ devtools::install_github('bvegetabile/ccber')
 
 Load the package to begin analysis!
 
-```{r, echo=TRUE, eval=TRUE}
+```{r, echo=TRUE, eval=F}
 library('ccber')
 ```
+
+## Quick Start
+
+Download files from [github.com/bvegetabile/ccber/tree/master/testfiles](https://github.com/bvegetabile/ccber/tree/master/testfiles)
+
+From the directory where the files are saved run,
+
+```{r, eval=F, echo=T}
+test_output <- ccber::ber_analyze_dir('.')
+```
+
+If successful, you fill will see the following:
+
+```{r, echo=TRUE, eval=F}
+> ccber::ber_analyze_dir('.')
+Completed without issue    :  Entropy_6m - 88888HE - Event Logs.xlsx
+Completed without issue    :  Entropy_6m - 99999LE - Event Logs.xlsx
+Script total run time:  0.013 minutes
+-------------------- Check the log for files below --------------------
+```
+
+The object `test_output` will look as follows:
+
+```
+> test_output
+  SubjectID CanEstimateEntropy EntropyRate
+1   88888HE               TRUE   1.2755499
+2   99999LE               TRUE   0.6442886
+  TotalNumberOfTransitions CombinedVideoDuration PercentMissing
+1                      119               600.027              0
+2                       69               600.027              0
+  AuditoryCounts AuditoryTotalTime AuditoryAverageTime
+1             23            25.001               1.087
+2             15            15.000               1.000
+  VisualCounts VisualTotalTime VisualAverageTime TactileCounts
+1           16        309.9636          19.37273            21
+2           11        185.0270          16.82064            10
+  TactileTotalTime TactileAverageTime
+1         362.9628           17.28394
+2         285.0273           28.50273
+```
+
 
 ## Function Overviews
 
@@ -83,7 +125,7 @@ ber_analyze_file('./testfiles/Entropy_6m - 88888HE - Event Logs.xlsx')
 
 #### Output
 
-`ber_analyze_file` returns a `R` `data.frame` with the following column headings
+`ber_analyze_file` returns an `R` `list` whose first element is a `data.frame` named `estimates` and a second element that is a list called `file_checks`.  The element `estimates` is the primary object of interest and has the following column headings
 
 | Column Header              | Description               
 |:-------------------------- |:--------------------------------------------------
@@ -103,6 +145,55 @@ ber_analyze_file('./testfiles/Entropy_6m - 88888HE - Event Logs.xlsx')
 | `TactileTotalTime`         | Total time representing events in tactile category
 | `TactileTotalTime`         | Average duration of events in tactile category
 
+During the course of running, the script performs a series of quality assurance tests of the file that has been input.  Specifically it performs the following tests:
+
+| Test Name     | Description               
+|:------------- |:--------------------------------------------------
+| `header_pass` | Checks for the following column headers : `c('Observation', 'Behavior', 'Time_Relative_sf', 'Duration_sf', 'Event_Type')`
+| `subjid_pass` | Checks for an entry in the first cell of the column `Observation`.  Does not check format of subject IDs
+| `misdat_pass` | Checks for empty cells in the columns list above using `sum(is.na(behavior_data$Behavior)) > 0`
+| `blabel_pass` | Finds the unique entries in the column `Behavior`, then compares that with the labels in `behavior_types`.  Reports unused labels, i.e., labels found in `Behavior` that were not including in `behavior_types`. 
+| `elabel_pass` | Finds the unique entries in the column `Event_Type`, then compares with the following list : `c('State start', 'State point', 'Point', 'State stop', 'State Stop')`.  These are currently supported events types.
+| `misnes_pass` | Checks the proportion of time representing missing data based off of the inputs to `missing_types` within `behavior_types`.  
+
+#### Example output from script:
+
+When running `ber_analyze_file` by itself, the following is an example of what is printed to the console at runtime to help diagnose issues with files:
+
+```
+-----------------------------------------------------------------------
+Filename:         Entropy_6m - 88888HE - Event Logs.xlsx 
+Time of Analysis: 2018-06-04 10:33:12 
+-----------------------------------------------------------------------
+*************************** Performing File Check *********************
+- Checking for required Columns:
+	Observation      : First cell used to set "SubjectID"
+	Behavior         : Set of used behavior labels
+	Time_Relative_sf : Sets the start point for each action
+	Duration_sf      : Time_Relative_sf + Duration_sf sets end points
+	Event_Type       : Defines point events and states
+--- PASSED : Found all Required Column Headers
+- Checking "Observation" Column For Subject ID
+--- PASSED: Using Subject ID from Column J, Cell 1: 88888HE 
+- Checking for Missing Data in Columns
+--- "Behavior"         : PASSED
+--- "Time_Relative_sf" : PASSED
+--- "Duration_sf"      : PASSED
+--- "Event_Type"       : PASSED
+- Checking "Behavior" Column For Unused Labels:
+--- WARNING : Unused Labels in "Behavior" Column, See Below:
+	Expected Label  : "NotHoldingBaby", not used in analysis
+	Expected Label  : "NoObjectInHand", not used in analysis
+--- NOTE: Investigate this if these do not look familar
+- Checking "Event_Type" Column For Labels:
+--- PASSED : No Unused Labels in "Event_Type" Column
+- Checking Missingness based on "missing_types"
+--- Percent Missingness: 0 
+--- PASSED : Percent missing less than threshold
+-----------------------------------------------------------------------
+************************ File Completed Successfully ******************
+-----------------------------------------------------------------------
+```
 
 ### Function : `ber_analyze_dir`
 
@@ -121,7 +212,8 @@ ber_analyze_dir(dir_loc,
                   "missing_types" = c('CantTellHolding',
                                       'ActivityNotVisible',
                                       'CantTellLooking')),
-                missing_threshold = 0.1)
+                missing_threshold = 0.1,
+                log_file = paste(Sys.Date(), '-ber-logfile.txt', sep=''))
 ```
 
 
@@ -131,7 +223,8 @@ ber_analyze_dir(dir_loc,
 | `tactile_padding`   | Numeric       | Value (in seconds) to right pad each tactile point event
 | `auditory_padding`  | Numeric       | Value (in seconds) to right pad each auditory point event
 | `behavior_types`    | List          | List outlining the behavioral states expected.  Required : `mom_auditory_types`, `mom_tactile_types`, `mom_visual_types`, `baby_visual_types`, `missing_types`.  These categories define the sensory domains as in the original paper.  See the example code above for the default values expected in each category.  
-| `missing_threshold` | Numeric       | Value (a proportion) that indicators how much missingness is acceptable.  This threshold is defined to be the percentage of the behavioral sequence that is represented by missing types defined in `missing_types`. 
+| `missing_threshold` | Numeric       | Value (a proportion) that indicators how much missingness is acceptable.  This threshold is defined to be the percentage of the behavioral sequence that is represented by missing types defined in `missing_types`
+| `log_file`          | String        | String indicating the location for where to save the diagnostic information from each run of `ber_analyze_file`
 
 
 #### Example Usage
@@ -188,4 +281,15 @@ The order of the rows should **not** matter, but it is best to be safe and keep 
 
 ### Input File Tests
 
-when `ber_analyze_file` is run, a series of tests is performed to check the input file.  
+As stated above the following tests are run using `ber_analyze_file` and are shown again below:
+
+| Test Name     | Description               
+|:------------- |:--------------------------------------------------
+| `header_pass` | Checks for the following column headers : `c('Observation', 'Behavior', 'Time_Relative_sf', 'Duration_sf', 'Event_Type')`
+| `subjid_pass` | Checks for an entry in the first cell of the column `Observation`.  Does not check format of subject IDs
+| `misdat_pass` | Checks for empty cells in the columns list above using `sum(is.na(behavior_data$Behavior)) > 0`
+| `blabel_pass` | Finds the unique entries in the column `Behavior`, then compares that with the labels in `behavior_types`.  Reports unused labels, i.e., labels found in `Behavior` that were not including in `behavior_types`. 
+| `elabel_pass` | Finds the unique entries in the column `Event_Type`, then compares with the following list : `c('State start', 'State point', 'Point', 'State stop', 'State Stop')`.  These are currently supported events types.
+| `misnes_pass` | Checks the proportion of time representing missing data based off of the inputs to `missing_types` within `behavior_types`.  
+
+Be sure to check the log files and output using `ber_analyze_dir` to ensure that the files are processed correctly.  
