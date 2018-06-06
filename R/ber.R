@@ -32,10 +32,10 @@ ber_analyze_dir <- function(dir_loc,
                             log_file = paste(Sys.Date(), '-ber-logfile.txt', sep='')){
 
   old_dir <- getwd()
-  setwd(dir_loc)
+  setwd(path.expand(dir_loc))
 
   # Reading in data
-  all_files = list.files(dir_loc, pattern="*.xlsx")
+  all_files = list.files('.', pattern="*.xlsx")
   n_files = length(all_files)
 
   # Allocating DataFrame for returning data
