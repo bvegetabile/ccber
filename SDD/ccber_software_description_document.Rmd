@@ -23,6 +23,8 @@ The source files for `ccber` are found at [github.com/bvegetabile/ccber](https:/
 
 The package `devtools` is required to install this `R` package from this Github repository.  Install this package first if it is not already installed.
 
+From within an `R` console, enter the following:
+
 ```{r, echo=TRUE, eval=FALSE}
 install.packages('devtools', dependencies = TRUE)
 ```
@@ -41,13 +43,22 @@ library('ccber')
 
 ## Quick Start
 
-Download files from [github.com/bvegetabile/ccber/tree/master/testfiles](https://github.com/bvegetabile/ccber/tree/master/testfiles)
+Download files from [github.com/bvegetabile/ccber/tree/master/testfiles/testfiles.zip](https://github.com/bvegetabile/ccber/blob/master/testfiles/testfiles.zip).  
 
-From the directory where the files are saved run,
+![Screenshot of the download location for testfiles.zip"](download_button.png)
+
+Navigate to the directory where the files are located using, following code ( _Note in the below, the path should be changed to the location of where the files have been uncompressed_ )
+```{r, eval=F, echo=T}
+setwd('~/git/ccber/testfiles/')
+```
+
+Then run the following,
 
 ```{r, eval=F, echo=T}
 test_output <- ccber::ber_analyze_dir('.')
 ```
+
+By setting the working directory in the first step, any output files will be put in directory specified.  
 
 If successful, you fill will see the following:
 
