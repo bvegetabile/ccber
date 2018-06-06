@@ -151,7 +151,7 @@ ber_analyze_dir(dir_loc,
 
 The inputs that are described in the previous section are mostly same and are passed as input to multiple calls of `ber_analyze_file`.  
 
-**For a more detailed overview see the software description document in within the SDD folder**
+**For a more detailed overview see the software description document within the SDD folder**
 
 ## An Example of How to Estimate Entropy Rate using `ccber`
 
