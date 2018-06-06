@@ -9,7 +9,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # $\texttt{ccber}$: an `R` Package for the Estimation of Behavioral Entropy Rate - Developed for the Conte Center @ UCI
 
-See reference: Davis, E.P., Stout, S.A., Molet, J., Vegetabile, B., Glynn, L.M., Sandman, C.A., Heins, K., Stern, H., Baram, T.Z. (in press). **Exposure to unpredictable maternal sensory signals influences cognitive development across-species**. _Proceedings of the National Academy of Sciences_.
+See reference: Davis, E.P., Stout, S.A., Molet, J., Vegetabile, B., Glynn, L.M., Sandman, C.A., Heins, K., Stern, H., Baram, T.Z. (2017). **Exposure to unpredictable maternal sensory signals influences cognitive development across-species**. _Proceedings of the National Academy of Sciences_. September 26, 2017. 114 (39) 10390-10395
 
 ## Installing `ccber`
 
@@ -31,6 +31,69 @@ Load the package to begin analysis!
 library('ccber')
 ```
 
+## Quick Start
+
+Download files from [github.com/bvegetabile/ccber/tree/master/testfiles/testfiles.zip](https://github.com/bvegetabile/ccber/blob/master/testfiles/testfiles.zip).  
+
+![Screenshot of the download location for testfiles.zip"](SDD/download_button.png)
+
+Navigate to the directory where the files are located using the following R command.  The setwd command sets the working directory for R. ( _Note in the below, the path should be changed to the location of where the files have been uncompressed_ )
+```{r, eval=F, echo=T}
+setwd('~/git/ccber/testfiles/')
+```
+
+Then run the following,
+
+```{r, eval=F, echo=T}
+test_output <- ccber::ber_analyze_dir('.')
+```
+
+By setting the working directory in the first step, any output files will be put in the directory specified.
+
+If successful, you fill will see the following:
+
+```{r, echo=TRUE, eval=F}
+> ccber::ber_analyze_dir('.')
+Completed without issue    :  Entropy_6m - 88888HE - Event Logs.xlsx
+Completed without issue    :  Entropy_6m - 99999LE - Event Logs.xlsx
+Script total run time:  0.013 minutes
+-------------------- Check the log for files below --------------------
+```
+
+The object `test_output` contains the entropy rates and some additional measures.  The output will look as follows:
+
+```
+> test_output
+  SubjectID CanEstimateEntropy EntropyRate
+1   88888HE               TRUE   1.2755499
+2   99999LE               TRUE   0.6442886
+  TotalNumberOfTransitions CombinedVideoDuration PercentMissing
+1                      119               600.027              0
+2                       69               600.027              0
+  AuditoryCounts AuditoryTotalTime AuditoryAverageTime
+1             23            25.001               1.087
+2             15            15.000               1.000
+  VisualCounts VisualTotalTime VisualAverageTime TactileCounts
+1           16        309.9636          19.37273            21
+2           11        185.0270          16.82064            10
+  TactileTotalTime TactileAverageTime
+1         362.9628           17.28394
+2         285.0273           28.50273
+```
+
+To save the output data to a `.csv` file to be read into excel later, use the following:
+
+```{r, eval=F, echo=T}
+write.csv(test_output, 
+          file = file = paste(Sys.Date(), 
+                              '-ber-estimates.csv', 
+                              sep=''),
+          row.names = F)
+```
+
+The command `Sys.Date()` prepends the date to document when the data was created
+
+
 ## Using `ccber` with Observer Files
 
 To use `ccber` to estimate behavioral entropy rate, see the Conte Center website for a description of how to set up files and record observations.  The input files for these functions are described there...
@@ -44,14 +107,15 @@ ber_analyze_file(f_loc,
                  plots_to_file=F,
                  tactile_padding = 1.0,
                  auditory_padding = 1.0,
-                 behavior_types=list("mom_auditory_types" = c('Vocal'),
-                                     "mom_tactile_types" = c('TouchBaby',
-                                                            'HoldingBaby'),
-                                     "mom_visual_types" = c('ManipulatingObject'),
-                                     "baby_visual_types" = c('LookAtMomActivity'),
-                                     "missing_types" = c('CantTellHolding',
-                                                         'ActivityNotVisible',
-                                                         'CantTellLooking')),
+                 behavior_types=list(
+                   "mom_auditory_types" = c('Vocal'),
+                   "mom_tactile_types" = c('TouchBaby',
+                                           'HoldingBaby'),
+                   "mom_visual_types" = c('ManipulatingObject'),
+                   "baby_visual_types" = c('LookAtMomActivity'),
+                   "missing_types" = c('CantTellHolding',
+                                       'ActivityNotVisible',
+                                       'CantTellLooking')),
                  missing_threshold = 0.1)
 ```
 The variables are described below:
@@ -72,18 +136,22 @@ To expedite processing of many files an additionally function is provided to ana
 ber_analyze_dir(dir_loc,
                 tactile_padding = 1.0,
                 auditory_padding = 1.0,
-                behavior_types=list("mom_auditory_types" = c('Vocal'),
-                                    "mom_tactile_types" = c('TouchBaby',
-                                                            'HoldingBaby'),
-                                    "mom_visual_types" = c('ManipulatingObject'),
-                                    "baby_visual_types" = c('LookAtMomActivity'),
-                                    "missing_types" = c('CantTellHolding',
-                                                        'ActivityNotVisible',
-                                                        'CantTellLooking')),
-                missing_threshold = 0.1)
+                behavior_types=list(
+                  "mom_auditory_types" = c('Vocal'),
+                  "mom_tactile_types" = c('TouchBaby',
+                                          'HoldingBaby'),
+                  "mom_visual_types" = c('ManipulatingObject'),
+                  "baby_visual_types" = c('LookAtMomActivity'),
+                  "missing_types" = c('CantTellHolding',
+                                      'ActivityNotVisible',
+                                      'CantTellLooking')),
+                missing_threshold = 0.1,
+                log_file = paste(Sys.Date(), '-ber-logfile.txt', sep=''))
 ```
 
-The inputs that are described in the previous section are the same and are passed as input to multiple calls of `ber_analyze_file`.  
+The inputs that are described in the previous section are mostly same and are passed as input to multiple calls of `ber_analyze_file`.  
+
+**For a more detailed overview see the software description document in within the SDD folder**
 
 ## An Example of How to Estimate Entropy Rate using `ccber`
 
