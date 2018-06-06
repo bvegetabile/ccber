@@ -13,9 +13,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 $\texttt{ccber}$ is an `R` package for the estimation of behavioral entropy rate, developed for the Conte Center @ UCI.  The package reads in an individual, or set of, excel files and processes the file to estimate the entropy rate from the supplied data.  This document describes usage and input formats that are expected with this software.
 
-See reference: Davis, E.P., Stout, S.A., Molet, J., Vegetabile, B., Glynn, L.M., Sandman, C.A., Heins, K., Stern, H., Baram, T.Z. (in press). **Exposure to unpredictable maternal sensory signals influences cognitive development across-species**. _Proceedings of the National Academy of Sciences_.
+See reference: Davis, E.P., Stout, S.A., Molet, J., Vegetabile, B., Glynn, L.M., Sandman, C.A., Heins, K., Stern, H., Baram, T.Z. (2017). **Exposure to unpredictable maternal sensory signals influences cognitive development across-species**. _Proceedings of the National Academy of Sciences_. September 26, 2017. 114 (39) 10390-10395
 
-An overview of behavioral entropy rate estimation in the context of human behavior is found in the supplemental in the reference above.  
+An overview of behavioral entropy rate estimation in the context of human behavior is found in the supporting information (SI) for the reference above.  
 
 The source files for `ccber` are found at [github.com/bvegetabile/ccber](https://www.github.com/bvegetabile/ccber)
 
@@ -47,7 +47,7 @@ Download files from [github.com/bvegetabile/ccber/tree/master/testfiles/testfile
 
 ![Screenshot of the download location for testfiles.zip"](download_button.png)
 
-Navigate to the directory where the files are located using, following code ( _Note in the below, the path should be changed to the location of where the files have been uncompressed_ )
+Navigate to the directory where the files are located using the following R command.  The setwd command sets the working directory for R. ( _Note in the below, the path should be changed to the location of where the files have been uncompressed_ )
 ```{r, eval=F, echo=T}
 setwd('~/git/ccber/testfiles/')
 ```
@@ -58,7 +58,7 @@ Then run the following,
 test_output <- ccber::ber_analyze_dir('.')
 ```
 
-By setting the working directory in the first step, any output files will be put in directory specified.  
+By setting the working directory in the first step, any output files will be put in the directory specified.
 
 If successful, you fill will see the following:
 
@@ -70,7 +70,7 @@ Script total run time:  0.013 minutes
 -------------------- Check the log for files below --------------------
 ```
 
-The object `test_output` will look as follows:
+The object `test_output` contains the entropy rates and some additional measures.  The output will look as follows:
 
 ```
 > test_output
@@ -91,8 +91,24 @@ The object `test_output` will look as follows:
 2         285.0273           28.50273
 ```
 
+To save the output data to a `.csv` file to be read into excel later, use the following:
+
+```{r, eval=F, echo=T}
+write.csv(test_output, 
+          file = file = paste(Sys.Date(), 
+                              '-ber-estimates.csv', 
+                              sep=''),
+          row.names = F)
+```
+
+The command `Sys.Date()` prepends the date to document when the data was created
+
 
 ## Function Overviews
+
+Ordinary use of the package would not require any of the information below this point in the description. 
+
+These function overviews provide additional information that may be helpful if there is a need to modify the settings (e.g., an error has occurred, there is a new data type or you want to try an alternative padding in event definitions).  
 
 ### Function : `ber_analyze_file`
 
@@ -255,18 +271,20 @@ This section describes the expected input file format required for the software.
 
 #### File Format Type
 
-At the moment, the required format is an Excel `.xlsx` file.  In the future this may be modifed to include `.csv` files, by altering specific lines of code in `ber.R`.  Specifically, line 37 within `ber_analyze_dir` should be altered to accept different string patterns:
+At the moment, the required format is an Excel `.xlsx` file.  
+
+ > Note:  In the future this may be modifed to include `.csv` files, by altering specific lines of code in `ber.R`.  Specifically, line 37 within `ber_analyze_dir` should be altered to accept different string patterns:
 ```{r, eval=F, echo=T}
-all_files = list.files(dir_loc, pattern="*.xlsx")
+    all_files = list.files(dir_loc, pattern="*.xlsx")
 ```
-and line 116 within `ber_analyze_file` should be changed read `.csv` files:
+> and line 116 within `ber_analyze_file` should be changed read `.csv` files:
 ```{r, eval=F, echo=T}
-behavior_data <- data.frame(readxl::read_xlsx(f_loc))
+    behavior_data <- data.frame(readxl::read_xlsx(f_loc))
 ```
 
 #### File Organization
 
-Below is a visualization of a current file that successfully is processed by `ccber` located within the `testfiles` subdirectory of the source files:
+Below is a visualization of a current input file that is located within the `testfiles` subdirectory of the source files and was used earlier in the software demonstration:
 
 ![Screenshot of the test file "Entropy_6m - 99999LE - Event Logs.xlsx"](testfile_screenshot.png)
 
